@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Time Prediction - Interactive Operations Research</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+      .sidebar {
+        width: 260px;
+        background: #fff;
+        padding: 2rem 1.5rem 2rem 2rem;
+        position: sticky;
+        top: 96px;
+        height: calc(100vh - 96px);
+      }
+      .main-content {
+        padding: 3rem 4rem 2rem 4rem;
+        flex: 1;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .project-list-item {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #bbb;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .project-list-item.selected {
+        color: #222;
+        font-weight: 500;
+      }
+      .project-list-item.disabled {
+        color: #e5e5e5;
+        cursor: not-allowed;
+      }
+      .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .content-text {
+        font-size: 1.8rem;
+        line-height: 1.5;
+        color: #333;
+        margin-bottom: 2rem;
+      }
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #111;
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <!-- Top Navigation Bar -->
+    <nav class="nav-bar bg-black text-white w-full h-24 flex items-center justify-between px-12" style="letter-spacing: 0.08em;">
+      <a href="index.html" class="text-2xl font-semibold leading-6 tracking-widest">HOME</a>
+      <div class="flex items-center space-x-10 text-lg">
+        <a href="publications.html" class="hover:text-gray-300 tracking-widest">PUBLICATIONS</a>
+        <a href="projects.html" class="font-bold hover:text-gray-300 tracking-widest">PROJECTS</a>
+        <a href="team.html" class="hover:text-gray-300 tracking-widest">TEAM</a>
+
+                    <a href="about.html" class="ml-6 px-6 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors tracking-widest">ABOUT</a>
+      </div>
+    </nav>
+    <div class="flex">
+      <!-- Sidebar -->
+      <aside class="sidebar flex-shrink-0">
+        <h2 class="text-3xl font-light mb-8">Projects</h2>
+        <div class="flex flex-col space-y-1">
+          <span class="project-list-item selected">Travel Time Prediction With Uncertainty</span>
+          <span class="project-list-item disabled">Project 2</span>
+          <span class="project-list-item disabled">Project 3</span>
+        </div>
+      </aside>
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <div class="w-full">
+          <div class="relative w-full mb-12">
+            <img src="/images/travel-time-prediction-with-uncertainty-background-img.png?v=3" alt="Project" class="w-full h-96 object-cover rounded shadow-lg">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <h1 class="text-white text-6xl font-light text-center drop-shadow-lg" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Travel Time Prediction With Uncertainty</h1>
+            </div>
+          </div>
+          
+          <!-- Paper Summary Section -->
+          <div class="mb-12">
+            <h2 class="section-title">Project at a Glance</h2>
+            <p class="content-text">
+              Our project is designed to make travel planning smarter and more reliable by predicting road travel times with a clear understanding of uncertainty. Whether you're a commuter, a delivery operator, or a city planner, knowing how long a trip will take is essential—but traffic conditions, weather, and accidents can make predictions unreliable. This web application uses advanced AI to improve these predictions by not only forecasting travel times but also giving a confidence range for each estimate. That means you don't just get a single number—you see the best estimate along with how much it might vary depending on real-world conditions. This empowers users to make better decisions, like choosing the best time to leave or selecting alternative routes. Our goal is to help everyone—from everyday drivers to logistics companies—plan trips with greater peace of mind, avoid unnecessary delays, and improve overall transportation efficiency in our communities.
+            </p>
+          </div>
+          
+          <h2 class="section-title">How It Works</h2>
+          <p class="content-text">
+            Our system is powered by a <strong>Bayesian Neural Network with Monte Carlo Dropout</strong>, a cutting-edge AI approach that not only predicts travel times but also quantifies the uncertainty in those predictions. By performing multiple simulated forward passes, it generates both the expected travel time and the variability around it, delivering robust, data-driven results even in dynamic traffic conditions. Instead of giving you just one number, it offers a <strong>range of possible times</strong>, reflecting real-world unpredictability like traffic jams or weather changes. You can even adjust two key settings: <strong>uncertainty level</strong> and <strong>coverage level</strong>. The <strong>uncertainty level</strong> determines how wide that range should be—if you want to plan conservatively for all surprises, you can choose a higher level, giving you more time buffer. The <strong>coverage level</strong> sets how confident you want to be that your actual trip will fall within that range (for example, choosing 90% means you want to be 90% sure it'll be inside). By tuning these settings, you can balance being safe and being efficient, just like telling your navigator "give me the fastest time" or "plan with extra caution." This flexibility helps you make smarter travel decisions that match your personal comfort with risk and variability. The model is trained on over 20,000 historical travel time records collected via the Google Maps API, covering a network of cities throughout the Great Lakes region. For interested readers, you can learn more about the research behind this system by reading the full paper (<a href="https://ieeexplore.ieee.org/abstract/document/10733522" target="_blank" style="color: #3B82F6; text-decoration: underline;">Link1</a>) and (<a href="https://www.sciencedirect.com/science/article/abs/pii/S1366554525000080" target="_blank" style="color: #3B82F6; text-decoration: underline;">Link2</a>).
+          </p>
+          <div class="w-full mt-8">
+            <iframe id="project-frame" src="project1.html" style="width: 100%; min-height: calc(100vh - 96px); border: none;"></iframe>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script>
+      // Adjust iframe height based on content
+      window.addEventListener('load', function() {
+        const iframe = document.getElementById('project-frame');
+        iframe.onload = function() {
+          iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + 'px';
+        };
+      });
+    </script>
+  </body>
+</html> 

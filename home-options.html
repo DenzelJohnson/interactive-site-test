@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Page Options - Interactive Operations Research</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+      .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .option-card {
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .option-card:hover {
+        border-color: #3B82F6;
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      }
+      .option-card.selected {
+        border-color: #10B981;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+      }
+      .preview-image {
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px 8px 0 0;
+      }
+      .position-preview {
+        width: 100%;
+        height: 120px;
+        background-size: cover;
+        background-position: center;
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        cursor: grab;
+        margin-top: 10px;
+      }
+      .position-preview:active {
+        cursor: grabbing;
+      }
+      .position-preview::after {
+        content: 'Drag to position • Scroll to zoom in';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .position-preview:hover::after {
+        opacity: 1;
+      }
+      .position-controls {
+        display: none;
+        margin-top: 10px;
+      }
+      .option-card.selected .position-controls {
+        display: block;
+      }
+      .zoom-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 5px;
+      }
+      .zoom-button {
+        background: #3B82F6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .zoom-button:hover {
+        background: #2563EB;
+      }
+      .drop-zone {
+        border: 3px dashed #ccc;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+      }
+      .drop-zone.dragover {
+        border-color: #3B82F6;
+        background: #eff6ff;
+        transform: scale(1.02);
+      }
+      .drop-zone-text {
+        color: #6b7280;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .drop-zone-subtext {
+        color: #9ca3af;
+        font-size: 14px;
+      }
+      .custom-image-card {
+        position: relative;
+      }
+      .remove-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .custom-image-card:hover .remove-button {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="nav-bar bg-black text-white w-full h-24 flex items-center justify-between px-12" style="letter-spacing: 0.08em;">
+      <a href="index.html" class="text-2xl font-semibold leading-6 tracking-widest">HOME</a>
+      <div class="flex items-center space-x-10 text-lg">
+        <a href="publications.html" class="hover:text-gray-300 tracking-widest">PUBLICATIONS</a>
+        <a href="projects.html" class="hover:text-gray-300 tracking-widest">PROJECTS</a>
+        <a href="team.html" class="hover:text-gray-300 tracking-widest">TEAM</a>
+
+                    <a href="about.html" class="ml-6 px-6 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors tracking-widest">ABOUT</a>
+      </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto py-12 px-6">
+      <h1 class="text-4xl font-light mb-4 text-center">Choose Your Home Page Background</h1>
+      <p class="text-gray-600 text-center mb-12 text-lg">Select a background image and drag to position it perfectly for your home page</p>
+
+      <!-- Drop Zone for Adding New Images -->
+      <div id="dropZone" class="drop-zone">
+        <div class="drop-zone-text">Drop images here to add new background options</div>
+        <div class="drop-zone-subtext">Or click to browse files (JPG, PNG, GIF supported)</div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+      </div>
+
+      <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        
+        <!-- Future Vision Option -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/Future_vision_img.png" data-name="Future Vision">
+          <img src="/home_page_images/Future_vision_img.png" alt="Future Vision" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Future Vision</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/Future_vision_img.png"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sora Walking Man -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/sora_walking_man.png" data-name="Sora Walking Man">
+          <img src="/home_page_images/sora_walking_man.png" alt="Sora Walking Man" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Sora Walking Man</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/sora_walking_man.png"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sora Standing Woman -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/sora_standing_woman.png" data-name="Sora Standing Woman">
+          <img src="/home_page_images/sora_standing_woman.png" alt="Sora Standing Woman" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Sora Standing Woman</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/sora_standing_woman.png"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flux Dev Future Vision 1 -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_1.jpg" data-name="Future Vision 1">
+          <img src="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_1.jpg" alt="Future Vision 1" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Future Vision 1</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_1.jpg"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flux Dev Future Vision 2 -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_2.jpg" data-name="Future Vision 2">
+          <img src="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_2.jpg" alt="Future Vision 2" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Future Vision 2</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_2.jpg"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flux Dev Future Vision 3 -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_3.jpg" data-name="Future Vision 3">
+          <img src="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_3.jpg" alt="Future Vision 3" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Future Vision 3</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/Flux_Dev_a_picture_immigrating_forward_lookingvisionfuture_rea_3.jpg"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thumbnail Road -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="/home_page_images/thumbnail_road1.jpg" data-name="Thumbnail Road">
+          <img src="/home_page_images/thumbnail_road1.jpg" alt="Thumbnail Road" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Thumbnail Road</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="/home_page_images/thumbnail_road1.jpg"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mountain Landscape -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80" data-name="Mountain Landscape">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80" alt="Mountain Landscape" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">Mountain Landscape</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- City Skyline -->
+        <div class="option-card bg-white rounded-lg shadow-md overflow-hidden" data-image="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=2000&q=80" data-name="City Skyline">
+          <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=800&q=80" alt="City Skyline" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">City Skyline</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=2000&q=80"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-center space-x-6">
+        <button id="applyButton" class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+          Apply Selected Background
+        </button>
+        <button id="clearStorageButton" class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-lg shadow-lg">
+          Clear All Custom Images
+        </button>
+        <a href="index.html" class="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-lg shadow-lg">
+          Back to Home
+        </a>
+      </div>
+
+      <!-- Current Selection Display -->
+      <div id="selectionDisplay" class="mt-8 text-center text-gray-600 hidden">
+        <p>Selected: <span id="selectedName" class="font-semibold text-gray-800"></span></p>
+      </div>
+
+      <!-- Storage Usage Display -->
+      <div id="storageInfo" class="mt-8 text-center text-gray-600">
+        <p>Storage Usage: <span id="storageUsage" class="font-semibold">0%</span></p>
+        <p class="text-sm text-gray-500 mt-1">Custom images are compressed and stored locally in your browser</p>
+      </div>
+    </main>
+
+    <script>
+      let selectedImage = null;
+      let selectedName = null;
+      let imagePositions = {}; // Store position for each image
+      let imageZooms = {}; // Store zoom level for each image
+      let customImages = JSON.parse(localStorage.getItem('customBackgroundImages') || '[]');
+
+      // Load custom images on page load
+      function loadCustomImages() {
+        const grid = document.getElementById('imageGrid');
+        customImages.forEach((customImage, index) => {
+          addImageToGrid(customImage.url, customImage.name, true, index);
+        });
+      }
+
+      // Add image to grid
+      function addImageToGrid(imageUrl, imageName, isCustom = false, customIndex = null) {
+        const grid = document.getElementById('imageGrid');
+        const card = document.createElement('div');
+        card.className = `option-card bg-white rounded-lg shadow-md overflow-hidden ${isCustom ? 'custom-image-card' : ''}`;
+        card.setAttribute('data-image', imageUrl);
+        card.setAttribute('data-name', imageName);
+        
+        card.innerHTML = `
+          <img src="${imageUrl}" alt="${imageName}" class="preview-image w-full">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-2">${imageName}</h3>
+            <div class="position-controls">
+              <div class="position-preview" data-image="${imageUrl}"></div>
+              <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(this, -0.1)">-</button>
+                <span class="text-xs text-gray-500">Zoom</span>
+                <button class="zoom-button" onclick="adjustZoom(this, 0.1)">+</button>
+              </div>
+              <div class="text-xs text-gray-500 mt-2 text-center">Drag to position • Scroll to zoom in</div>
+            </div>
+          </div>
+          ${isCustom ? `<button class="remove-button" onclick="removeCustomImage(${customIndex})" title="Remove image">×</button>` : ''}
+        `;
+        
+        grid.appendChild(card);
+        
+        // Initialize the new card
+        initializeCard(card);
+      }
+
+      // Remove custom image
+      function removeCustomImage(index) {
+        customImages.splice(index, 1);
+        localStorage.setItem('customBackgroundImages', JSON.stringify(customImages));
+        location.reload(); // Reload to update indices
+      }
+
+      // Initialize card functionality
+      function initializeCard(card) {
+        card.addEventListener('click', function() {
+          // Remove selected class from all cards
+          document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+          
+          // Add selected class to clicked card
+          this.classList.add('selected');
+          
+          // Store selected image and name
+          selectedImage = this.dataset.image;
+          selectedName = this.dataset.name;
+          
+          // Update UI
+          document.getElementById('selectedName').textContent = selectedName;
+          document.getElementById('selectionDisplay').classList.remove('hidden');
+          document.getElementById('applyButton').disabled = false;
+        });
+
+        // Initialize position preview for this card
+        const preview = card.querySelector('.position-preview');
+        if (preview) {
+          initializePositionPreview(preview);
+        }
+      }
+
+      // Initialize position previews
+      function initializePositionPreview(preview) {
+        const imageUrl = preview.dataset.image;
+        preview.style.backgroundImage = `url('${imageUrl}')`;
+        preview.style.backgroundSize = 'cover';
+        preview.style.backgroundPosition = 'center';
+        
+        // Add drag functionality with increased sensitivity
+        let isDragging = false;
+        let startX, startY;
+        
+        preview.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          preview.style.cursor = 'grabbing';
+          e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          
+          const deltaX = e.clientX - startX;
+          const deltaY = e.clientY - startY;
+          
+          // Get current background position
+          const computedStyle = window.getComputedStyle(preview);
+          const currentPosition = computedStyle.backgroundPosition;
+          
+          // Parse current position (default is "50% 50%" for center)
+          let [currentX, currentY] = currentPosition.split(' ');
+          currentX = parseFloat(currentX) || 50;
+          currentY = parseFloat(currentY) || 50;
+          
+          // Calculate new position with increased sensitivity (0.3 instead of 0.1)
+          const newX = Math.max(0, Math.min(100, currentX - (deltaX * 0.3)));
+          const newY = Math.max(0, Math.min(100, currentY - (deltaY * 0.3)));
+          
+          preview.style.backgroundPosition = `${newX}% ${newY}%`;
+          
+          // Store the position
+          imagePositions[imageUrl] = `${newX}% ${newY}%`;
+          
+          startX = e.clientX;
+          startY = e.clientY;
+        });
+        
+        document.addEventListener('mouseup', () => {
+          if (isDragging) {
+            isDragging = false;
+            preview.style.cursor = 'grab';
+          }
+        });
+
+        // Add scroll zoom functionality
+        preview.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
+          adjustZoomForPreview(preview, zoomDelta);
+        });
+      }
+
+      // Adjust zoom for a specific preview
+      function adjustZoomForPreview(preview, delta) {
+        const imageUrl = preview.dataset.image;
+        const currentZoom = imageZooms[imageUrl] || 1;
+        const newZoom = Math.max(1, Math.min(3, currentZoom + delta)); // Zoom between 100% and 300% (no zoom out below cover)
+        
+        imageZooms[imageUrl] = newZoom;
+        
+        // Apply zoom by adjusting background size
+        const baseSize = 100; // 100% = cover
+        const newSize = baseSize * newZoom;
+        preview.style.backgroundSize = `${newSize}%`;
+      }
+
+      // Adjust zoom function for buttons
+      function adjustZoom(button, delta) {
+        const card = button.closest('.option-card');
+        const preview = card.querySelector('.position-preview');
+        adjustZoomForPreview(preview, delta);
+      }
+
+      // Drag and drop functionality
+      function setupDragAndDrop() {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        // Click to browse
+        dropZone.addEventListener('click', () => {
+          fileInput.click();
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+          handleFiles(e.target.files);
+        });
+
+        // Drag and drop events
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          handleFiles(e.dataTransfer.files);
+        });
+      }
+
+      // Handle dropped/selected files
+      function handleFiles(files) {
+        Array.from(files).forEach((file, index) => {
+          if (file.type.startsWith('image/')) {
+            // Check file size (limit to 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+              alert(`Image "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Please use images smaller than 5MB.`);
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = function() {
+                // Compress the image to reduce localStorage usage
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate new dimensions (max 1920x1080 to reduce size)
+                let { width, height } = img;
+                const maxWidth = 1920;
+                const maxHeight = 1080;
+                
+                if (width > maxWidth || height > maxHeight) {
+                  const ratio = Math.min(maxWidth / width, maxHeight / height);
+                  width *= ratio;
+                  height *= ratio;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress the image
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to compressed JPEG (quality 0.8 for good balance of size/quality)
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Check if compressed image is still too large for localStorage
+                const sizeInBytes = compressedDataUrl.length * 0.75; // Rough estimate of base64 size
+                const sizeInMB = sizeInBytes / (1024 * 1024);
+                
+                if (sizeInMB > 3) {
+                  alert(`Image "${file.name}" is still too large after compression (${sizeInMB.toFixed(1)}MB). Please use a smaller image.`);
+                  return;
+                }
+                
+                const imageName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                
+                try {
+                  // Add to custom images array
+                  const customImage = { url: compressedDataUrl, name: imageName };
+                  customImages.push(customImage);
+                  localStorage.setItem('customBackgroundImages', JSON.stringify(customImages));
+                  
+                  // Add to grid
+                  addImageToGrid(compressedDataUrl, imageName, true, customImages.length - 1);
+                  
+                  console.log(`Successfully added compressed image: ${imageName} (${sizeInMB.toFixed(1)}MB)`);
+                  
+                  // Update storage display
+                  updateStorageDisplay();
+                } catch (error) {
+                  if (error.name === 'QuotaExceededError') {
+                    alert('Storage quota exceeded. Please remove some custom images before adding new ones.');
+                    console.error('LocalStorage quota exceeded:', error);
+                  } else {
+                    alert('Failed to save image. Please try again.');
+                    console.error('Error saving image:', error);
+                  }
+                }
+              };
+              img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Handle apply button click
+      document.getElementById('applyButton').addEventListener('click', function() {
+        if (selectedImage) {
+          console.log('Applying background:', selectedImage.substring(0, 100) + '...'); // Debug log
+          console.log('Background name:', selectedName); // Debug log
+          
+          try {
+            // Store the selected image and its position in localStorage
+            localStorage.setItem('homePageBackground', selectedImage);
+            localStorage.setItem('homePageBackgroundName', selectedName);
+            
+            // Store the position and zoom if they were adjusted
+            const position = imagePositions[selectedImage] || 'center';
+            const zoom = imageZooms[selectedImage] || 1;
+            localStorage.setItem('homePageBackgroundPosition', position);
+            localStorage.setItem('homePageBackgroundZoom', zoom.toString());
+            
+            console.log('Stored position:', position); // Debug log
+            console.log('Stored zoom:', zoom); // Debug log
+            
+            // Redirect to home page with a parameter to trigger background change
+            window.location.href = 'index.html?bg=updated';
+          } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+              alert('Storage quota exceeded. This image is too large to store. Please try a smaller image or remove some custom images first.');
+              console.error('LocalStorage quota exceeded when applying background:', error);
+            } else {
+              alert('Failed to apply background. Please try again.');
+              console.error('Error applying background:', error);
+            }
+          }
+        } else {
+          console.log('No image selected'); // Debug log
+        }
+      });
+
+      // Check if there's a currently selected background
+      const currentBg = localStorage.getItem('homePageBackground');
+      const currentPosition = localStorage.getItem('homePageBackgroundPosition') || 'center';
+      const currentZoom = Math.max(1, parseFloat(localStorage.getItem('homePageBackgroundZoom')) || 1); // Ensure zoom is at least 1
+      
+      if (currentBg) {
+        // Store current settings
+        imagePositions[currentBg] = currentPosition;
+        imageZooms[currentBg] = currentZoom;
+        
+        // Update localStorage if zoom was corrected
+        if (currentZoom !== parseFloat(localStorage.getItem('homePageBackgroundZoom'))) {
+          localStorage.setItem('homePageBackgroundZoom', currentZoom.toString());
+        }
+      }
+
+      // Initialize everything when page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        // Load custom images first
+        loadCustomImages();
+        
+        // Initialize all existing cards
+        document.querySelectorAll('.option-card').forEach(card => {
+          initializeCard(card);
+        });
+
+        // Initialize position previews
+        document.querySelectorAll('.position-preview').forEach(preview => {
+          initializePositionPreview(preview);
+        });
+        
+        // Apply stored positions and zoom
+        if (currentBg) {
+          // First try to find the card in existing static cards
+          let targetCard = document.querySelector(`[data-image="${currentBg}"]`);
+          
+          // If not found in static cards, it might be a custom image - wait a bit and try again
+          if (!targetCard) {
+            setTimeout(() => {
+              targetCard = document.querySelector(`[data-image="${currentBg}"]`);
+              if (targetCard) {
+                selectCard(targetCard);
+              } else {
+                console.log('Could not find card for background:', currentBg.substring(0, 100) + '...');
+              }
+            }, 100);
+          } else {
+            selectCard(targetCard);
+          }
+        }
+
+        // Setup drag and drop
+        setupDragAndDrop();
+        
+        // Setup clear storage button
+        document.getElementById('clearStorageButton').addEventListener('click', clearAllCustomImages);
+        
+        // Update storage display
+        updateStorageDisplay();
+      });
+
+      // Helper function to select a card
+      function selectCard(targetCard) {
+        targetCard.classList.add('selected');
+        selectedImage = currentBg;
+        selectedName = localStorage.getItem('homePageBackgroundName') || targetCard.dataset.name;
+        document.getElementById('selectedName').textContent = selectedName;
+        document.getElementById('selectionDisplay').classList.remove('hidden');
+        document.getElementById('applyButton').disabled = false;
+        
+        const preview = targetCard.querySelector('.position-preview');
+        if (preview && currentPosition !== 'center') {
+          preview.style.backgroundPosition = currentPosition;
+        }
+        if (preview && currentZoom !== 1) {
+          preview.style.backgroundSize = `${100 * currentZoom}%`;
+        }
+      }
+
+      // Calculate localStorage usage
+      function calculateStorageUsage() {
+        let totalSize = 0;
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            totalSize += localStorage[key].length;
+          }
+        }
+        
+        // Estimate maximum localStorage size (usually 5-10MB, we'll use 5MB as conservative estimate)
+        const maxSize = 5 * 1024 * 1024; // 5MB in characters (roughly)
+        const usagePercentage = Math.round((totalSize / maxSize) * 100);
+        
+        return {
+          used: totalSize,
+          percentage: Math.min(usagePercentage, 100),
+          usedMB: (totalSize / (1024 * 1024)).toFixed(2)
+        };
+      }
+
+      // Update storage usage display
+      function updateStorageDisplay() {
+        const usage = calculateStorageUsage();
+        const storageElement = document.getElementById('storageUsage');
+        storageElement.textContent = `${usage.percentage}% (${usage.usedMB}MB)`;
+        
+        // Change color based on usage
+        if (usage.percentage > 80) {
+          storageElement.className = 'font-semibold text-red-600';
+        } else if (usage.percentage > 60) {
+          storageElement.className = 'font-semibold text-yellow-600';
+        } else {
+          storageElement.className = 'font-semibold text-green-600';
+        }
+      }
+
+      // Clear all custom images
+      function clearAllCustomImages() {
+        if (confirm('Are you sure you want to remove all custom images? This cannot be undone.')) {
+          localStorage.removeItem('customBackgroundImages');
+          
+          // If current background is a custom image, clear it too
+          const currentBg = localStorage.getItem('homePageBackground');
+          if (currentBg && currentBg.startsWith('data:')) {
+            localStorage.removeItem('homePageBackground');
+            localStorage.removeItem('homePageBackgroundName');
+            localStorage.removeItem('homePageBackgroundPosition');
+            localStorage.removeItem('homePageBackgroundZoom');
+          }
+          
+          // Reload page to update display
+          location.reload();
+        }
+      }
+    </script>
+  </body>
+</html> 

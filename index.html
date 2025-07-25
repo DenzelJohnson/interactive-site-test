@@ -3,24 +3,195 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>code-whisper-connect</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-
-    <meta property="og:title" content="code-whisper-connect" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <title>Interactive Operations Research</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+      .sidebar {
+        width: 260px;
+        background: #fff;
+        padding: 2rem 1.5rem 2rem 2rem;
+        position: sticky;
+        top: 96px;
+        height: calc(100vh - 96px);
+      }
+      .main-content {
+        padding: 3rem 4rem 2rem 4rem;
+        flex: 1;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .project-list-item {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #bbb;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .project-list-item.selected {
+        color: #222;
+        font-weight: 500;
+      }
+      .project-list-item.disabled {
+        color: #e5e5e5;
+        cursor: not-allowed;
+      }
+      .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .content-text {
+        font-size: 1.8rem;
+        line-height: 1.5;
+        color: #333;
+        margin-bottom: 2rem;
+      }
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #111;
+      }
+      .hero {
+        height: 35vh;
+        background-image: url('/home_page_images/thumbnail_road1.jpg');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+      }
+      .hero-title {
+        font-size: 3.5rem;
+        font-weight: 300;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      }
+      .mission-section {
+        padding: 5rem 2rem;
+        text-align: center;
+      }
+      .mission-title {
+        font-size: 3rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+      }
+      .mission-text {
+        font-size: 1.5rem;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        color: #333;
+      }
+    </style>
   </head>
+  <body class="bg-white">
+    <!-- Top Navigation Bar -->
+    <nav class="nav-bar bg-black text-white w-full h-24 flex items-center justify-between px-12" style="letter-spacing: 0.08em;">
+      <a href="index.html" class="text-2xl font-semibold leading-6 tracking-widest">HOME</a>
+      <div class="flex items-center space-x-10 text-lg">
+        <a href="publications.html" class="hover:text-gray-300 tracking-widest">PUBLICATIONS</a>
+        <a href="projects.html" class="hover:text-gray-300 tracking-widest">PROJECTS</a>
+        <a href="team.html" class="hover:text-gray-300 tracking-widest">TEAM</a>
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
+        <a href="events.html" class="hover:text-gray-300 tracking-widest">EVENTS</a>
+                    <a href="about.html" class="ml-6 px-6 py-2 border border-white rounded hover:bg-white hover:text-black transition-colors tracking-widest">ABOUT</a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <h1 class="hero-title">Home</h1>
+    </header>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+      <h2 class="mission-title">Mission</h2>
+      <p class="mission-text">
+        Our mission is to bridge the gap between state-of-the-art operations research models and real-world decision-making. We create intuitive, interactive tools that empower planners, engineers, and stakeholders to explore complex trade-offs, understand uncertainty, and make more informed decisions.
+      </p>
+    </section>
+
+    <!-- Home Page Options Button -->
+    <section class="flex justify-center mt-12 mb-8">
+      <a href="home-options.html" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg">
+        View Other Home Pages
+      </a>
+    </section>
+
+    <script>
+      // Check for selected background image in localStorage
+      const selectedBackground = localStorage.getItem('homePageBackground');
+      const selectedPosition = localStorage.getItem('homePageBackgroundPosition') || 'center';
+      const selectedZoom = Math.max(1, parseFloat(localStorage.getItem('homePageBackgroundZoom')) || 1); // Ensure zoom is at least 1
+      
+      console.log('Loading background:', selectedBackground ? selectedBackground.substring(0, 100) + '...' : 'none'); // Debug log
+      console.log('Position:', selectedPosition, 'Zoom:', selectedZoom); // Debug log
+      
+      if (selectedBackground) {
+        // Apply the selected background, position, and zoom
+        const heroElement = document.querySelector('.hero');
+        
+        // Handle data URLs properly by checking if it's a data URL or regular URL
+        if (selectedBackground.startsWith('data:')) {
+          // For data URLs, set the background image directly
+          heroElement.style.backgroundImage = `url("${selectedBackground}")`;
+          console.log('Applied data URL background'); // Debug log
+        } else {
+          // For regular URLs, use single quotes
+          heroElement.style.backgroundImage = `url('${selectedBackground}')`;
+          console.log('Applied regular URL background'); // Debug log
+        }
+        
+        heroElement.style.backgroundPosition = selectedPosition;
+        heroElement.style.backgroundSize = `${100 * selectedZoom}%`;
+      }
+      
+      // Check if we just returned from the options page
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('bg') === 'updated') {
+        // Remove the parameter from URL without refreshing
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Show a brief notification
+        const notification = document.createElement('div');
+        notification.innerHTML = 'Background updated successfully!';
+        notification.className = 'fixed top-24 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-500';
+        document.body.appendChild(notification);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          setTimeout(() => notification.remove(), 500);
+        }, 3000);
+      }
+    </script>
+
+    <!-- Contact Footer -->
+    <footer class="bg-black text-white py-8 mt-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="text-center md:text-left mb-4 md:mb-0">
+                    <h3 class="text-xl font-semibold mb-2 tracking-widest">CONTACT US</h3>
+                    <p class="text-gray-300 mt-1">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        1280 Main Street West, Hamilton, Ontario, Canada, L8S 4L8
+                    </p>
+                    <p class="text-gray-300 mt-1">
+                        <i class="fas fa-phone mr-2"></i>
+                        (905) 525-9140
+                    </p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="https://www.linkedin.com/in/saiedeh-razavi-b899b9141/" class="text-gray-300 hover:text-blue-400 transition-colors" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-linkedin-in text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
   </body>
 </html>
