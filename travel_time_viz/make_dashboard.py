@@ -73,15 +73,24 @@ header_row = []
 header_row.append(figure(width=80, height=40, toolbar_location=None, tools=""))  # Empty corner cell
 header_row[-1].axis.visible = False
 header_row[-1].grid.visible = False
+header_row[-1].min_border = 0
+header_row[-1].min_border_left = 0
+header_row[-1].min_border_right = 0
+header_row[-1].outline_line_color = None
 
 for d in destinations:
     header_fig = figure(width=80, height=40, toolbar_location=None, tools="")
+    header_fig.name = f'header_{d}'
     header_fig.text(x=[0.5], y=[0.5], text=[d], text_align="center", text_baseline="middle", 
                    text_font_size="10pt", text_font_style="bold")
     header_fig.x_range.range_padding = 0
     header_fig.y_range.range_padding = 0
     header_fig.axis.visible = False
     header_fig.grid.visible = False
+    header_fig.min_border = 0
+    header_fig.min_border_left = 0
+    header_fig.min_border_right = 0
+    header_fig.outline_line_color = None
     header_row.append(header_fig)
 
 plots.append(header_row)
@@ -94,12 +103,17 @@ for i, o in enumerate(origins):
     
     # Add origin label as first cell in row
     origin_fig = figure(width=80, height=80, toolbar_location=None, tools="")
+    origin_fig.name = f'origin_{o}'
     origin_fig.text(x=[0.5], y=[0.5], text=[o], text_align="center", text_baseline="middle",
                    text_font_size="10pt", text_font_style="bold", angle=1.5708)  # 90 degrees
     origin_fig.x_range.range_padding = 0
     origin_fig.y_range.range_padding = 0
     origin_fig.axis.visible = False
     origin_fig.grid.visible = False
+    origin_fig.min_border = 0
+    origin_fig.min_border_left = 0
+    origin_fig.min_border_right = 0
+    origin_fig.outline_line_color = None
     row_plots.append(origin_fig)
     row_srcs.append(None)  # No data source for label
     
@@ -114,7 +128,12 @@ for i, o in enumerate(origins):
             xs  = np.repeat(np.arange(7), 7)
             ys  = np.tile(np.arange(7), 7)  # Remove flip - standard row-major order
             vals= mat.flatten()
-            src = ColumnDataSource({'x':xs,'y':ys,'val':vals, 'alpha':[1]*49}, name=f'src_{o}_{d}')
+            cov_labels = ['0.7','0.75','0.8','0.85','0.9','0.95','1.0']
+            unc_labels = ['1.0','0.95','0.9','0.85','0.8','0.75','0.7']
+            cov_text = [cov_labels[x] for x in xs]
+            unc_text = [unc_labels[y] for y in ys]
+            val_up = np.ceil(vals).astype(int)
+            src = ColumnDataSource({'x':xs,'y':ys,'val':vals, 'alpha':[1]*49, 'cov_text': cov_text, 'unc_text': unc_text, 'val_up': val_up}, name=f'src_{o}_{d}')
 
             p = figure(
                 tools="hover",
@@ -123,29 +142,40 @@ for i, o in enumerate(origins):
                 sizing_mode='fixed',
                 width=80, height=80  # Larger cells
             )
+            p.name = f'cell_{o}_{d}'
             p.rect('x','y',1,1, source=src, line_color=None,
                    fill_color={'field':'val','transform':mapper}, fill_alpha='alpha')
             hover = p.select_one(HoverTool)
-            hover.tooltips = [
-                ("Origin",      o),
-                ("Destination", d),
-                ("row (y)",     "@y"),
-                ("col (x)",     "@x"),
-                ("value",       "@val{0}")  # Round to whole number
-            ]
+            hover.tooltips = f"""
+            <div style='font-size:25px; line-height:1.25; color:#000; font-family: Open Sans, Arial, sans-serif;'>
+              <div><b>Origin:</b> {o}</div>
+              <div><b>Destination:</b> {d}</div>
+              <div><b>Coverage Level:</b> @cov_text</div>
+              <div><b>Uncertainty Level:</b> @unc_text</div>
+              <div><b>Travel Time:</b> @val_up min</div>
+            </div>
+            """
             p.axis.visible = False
             p.grid.visible = False
+            p.min_border = 0
+            p.min_border_left = 0
+            p.min_border_right = 0
+            p.outline_line_color = None
         else:
             src = ColumnDataSource({'x':[], 'y':[], 'val':[], 'alpha':[]}, name=f'src_{o}_{d}')
             p = figure(width=80, height=80, toolbar_location=None, tools="")
             p.axis.visible = False
             p.grid.visible = False
+            p.min_border = 0
+            p.min_border_left = 0
+            p.min_border_right = 0
+            p.outline_line_color = None
         row_plots.append(p)
         row_srcs.append(src)
     plots.append(row_plots)
     data_plot_sources.append(row_srcs)
 
-grid = gridplot(plots, sizing_mode='fixed')
+grid = gridplot(plots, sizing_mode='fixed', toolbar_location=None, merge_tools=True)
 
 # Create color bar with discrete boundaries - make it taller to span the grid
 grid_height = 40 + (len(origins) * 80)  # Header height + data rows
@@ -181,12 +211,17 @@ colorbar_fig = figure(
     x_range=(0,1), 
     y_range=(0,1)
 )
+colorbar_fig.name = 'colorbar'
 colorbar_fig.add_layout(color_bar, 'right')
 colorbar_fig.axis.visible = False
 colorbar_fig.grid.visible = False
+colorbar_fig.min_border = 0
+colorbar_fig.min_border_left = 0
+colorbar_fig.min_border_right = 0
+colorbar_fig.outline_line_color = None
 
 # Combine grid and color bar in a row layout
-main_layout = row(grid, colorbar_fig, sizing_mode='fixed')
+main_layout = row(grid, colorbar_fig, sizing_mode='fixed', spacing=0)
 
 # Create enlarged plots for each origin-destination pair
 enlarged_plots = {}
@@ -201,8 +236,12 @@ for o in origins:
             xs  = np.repeat(np.arange(7), 7)
             ys  = np.tile(np.arange(7), 7)
             vals= mat.flatten()
-            
-            src = ColumnDataSource({'x':xs,'y':ys,'val':vals})
+            cov_labels = ['0.7','0.75','0.8','0.85','0.9','0.95','1.0']
+            unc_labels = ['1.0','0.95','0.9','0.85','0.8','0.75','0.7']
+            cov_text = [cov_labels[x] for x in xs]
+            unc_text = [unc_labels[y] for y in ys]
+            val_up = np.ceil(vals).astype(int)
+            src = ColumnDataSource({'x':xs,'y':ys,'val':vals, 'alpha':[1]*49, 'cov_text': cov_text, 'unc_text': unc_text, 'val_up': val_up}, name=f'enlarged_src_{o}_{d}')
             
             # Create enlarged plot (400x400px)
             p_large = figure(
@@ -213,18 +252,31 @@ for o in origins:
                 width=450, height=450,  # Larger to better fill the container
                 title=f"{o} → {d}"
             )
+            p_large.name = f'enlarged_{o}_{d}'
             p_large.rect('x','y',1,1, source=src, line_color="white", line_width=1,
-                        fill_color={'field':'val','transform':mapper})
+                        fill_color={'field':'val','transform':mapper}, fill_alpha='alpha')
             hover = p_large.select_one(HoverTool)
-            hover.tooltips = [
-                ("Origin",      o),
-                ("Destination", d),
-                ("row (y)",     "@y"),
-                ("col (x)",     "@x"),
-                ("value",       "@val{0}")  # Round to whole number
-            ]
-            p_large.axis.visible = False
-            p_large.grid.visible = False
+            hover.tooltips = f"""
+            <div style='font-size:25px; line-height:1.25; color:#000; font-family: Open Sans, Arial, sans-serif;'>
+              <div><b>Coverage Level:</b> @cov_text</div>
+              <div><b>Uncertainty Level:</b> @unc_text</div>
+              <div><b>Travel Time:</b> @val_up min</div>
+            </div>
+            """
+            p_large.axis.visible = True
+            p_large.xaxis.axis_label = "Coverage Level"
+            p_large.yaxis.axis_label = "Uncertainty Level"
+            p_large.xaxis.ticker = FixedTicker(ticks=[0,1,2,3,4,5,6])
+            p_large.yaxis.ticker = FixedTicker(ticks=[0,1,2,3,4,5,6])
+            p_large.xaxis.major_label_overrides = {0:'0.7',1:'0.75',2:'0.8',3:'0.85',4:'0.9',5:'0.95',6:'1.0'}
+            p_large.yaxis.major_label_overrides = {0:'1.0',1:'0.95',2:'0.9',3:'0.85',4:'0.8',5:'0.75',6:'0.7'}
+            p_large.xaxis.axis_label_text_font_size = "16pt"
+            p_large.yaxis.axis_label_text_font_size = "16pt"
+            p_large.xaxis.major_label_text_font_size = "14pt"
+            p_large.yaxis.major_label_text_font_size = "14pt"
+            p_large.title.text_font_size = "18pt"
+            p_large.xgrid.grid_line_color = "#f0f0f0"
+            p_large.ygrid.grid_line_color = "#f0f0f0"
             enlarged_plots[f"{o}_{d}"] = p_large
         else:
             # Create empty enlarged plot
@@ -281,6 +333,30 @@ enlarged_divs_html = '\n'.join([
     for key, div_content in div.items() if key != 'main_grid'
 ])
 
+# Precompute JS snippets for responsive sizing
+resize_headers_js = '\n'.join([
+    f"let h_{i}=doc.get_model_by_name('header_{destinations[i]}'); if(h_{i}){{h_{i}.width=cellW;h_{i}.height=headerH;h_{i}.change.emit();}}"
+    for i in range(len(destinations))
+])
+resize_origins_js = '\n'.join([
+    f"let o_{i}=doc.get_model_by_name('origin_{origins[i]}'); if(o_{i}){{o_{i}.width=cellW;o_{i}.height=cellH;o_{i}.change.emit();}}"
+    for i in range(len(origins))
+])
+resize_cells_js = '\n'.join([
+    '\n'.join([
+        f"let c_{i}_{j}=doc.get_model_by_name('cell_{origins[i]}_{destinations[j]}'); if(c_{i}_{j}){{c_{i}_{j}.width=cellW;c_{i}_{j}.height=cellH;c_{i}_{j}.change.emit();}}"
+        for j in range(len(destinations))
+    ])
+    for i in range(len(origins))
+])
+resize_enlarged_js = '\n'.join([
+    '\n'.join([
+        f"let e_{i}_{j}=doc.get_model_by_name('enlarged_{origins[i]}_{destinations[j]}'); if(e_{i}_{j}){{e_{i}_{j}.width=availW;e_{i}_{j}.height=availH;e_{i}_{j}.change.emit();}}"
+        for j in range(len(destinations))
+    ])
+    for i in range(len(origins))
+])
+
 html = f"""
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -289,100 +365,84 @@ html = f"""
   <title>⎯⎯ My Travel-Time Dashboard ⎯⎯</title>
   {resources}
   {script}
+  <link href=\"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap\" rel=\"stylesheet\">
   <style>
-    body {{ font-family:sans-serif; margin:20px; }}
-    
-    /* Three-panel layout container */
+    :root {{ --map-w: 45vw; --map-h: 50vh; --enlarged-w: 40vw; --enlarged-h: 50vh; }}
+    body {{ font-family:'Open Sans', Arial, sans-serif; margin:20px; }}
+    .bk-root, .bk-tooltip, select, button, input, label {{ font-family:'Open Sans', Arial, sans-serif; }}
     .top-panel {{
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 20px;
-        gap: 20px;
+        margin-bottom: 2vh;
+        gap: 2vw;
+        flex-wrap: wrap;
     }}
-    
     #google-map {{
-        width: 700px;
-        height: 500px;
+        width: var(--map-w);
+        height: var(--map-h);
         border: 1px solid #ccc;
         flex-shrink: 0;
     }}
-    
     #enlarged-container {{
-        width: 450px;  /* Match enlarged plot width */
-        height: 500px;  /* Match map height */
+        width: var(--enlarged-w);
+        height: var(--enlarged-h);
         border: 1px solid #ccc;
         flex-shrink: 0;
+        padding: 1vh 1vw;
+        box-sizing: border-box;
     }}
-    
-    #heatmap-container {{ 
-        width:95vw;    /* Use most of viewport width */
-        height:auto;   /* auto height to preserve aspect */
-        max-width:1400px; /* Allow it to get larger */
-        margin:0 auto;
-        display: flex;
-        justify-content: center;
-    }}
-    
+    #heatmap-outer {{ width: 96vw; margin: 0 auto; overflow: hidden; }}
+    #heatmap-scale {{ display: inline-block; transform-origin: top left; }}
     .controls {{ 
         text-align: center; 
-        margin-bottom: 20px; 
-        font-size: 18px;  /* Larger font */
-        padding: 15px;    /* More padding */
+        margin-bottom: 2vh; 
+        font-size: clamp(16px, 2.2vw, 28px);
+        padding: clamp(8px, 1.5vh, 18px);
+        display: flex;
+        gap: 1.2vw;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
     }}
-    
     .controls select {{
-        font-size: 16px;   /* Larger select boxes */
-        padding: 8px 12px; /* More padding in selects */
-        margin: 0 10px;    /* Space between elements */
-        min-width: 150px;  /* Minimum width for dropdowns */
+        font-size: clamp(14px, 1.8vw, 22px);
+        padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.2vw, 16px);
+        min-width: clamp(140px, 14vw, 280px);
     }}
-    
-    .controls button {{
-        font-size: 16px;   /* Larger button */
-        padding: 8px 16px; /* More padding in button */
-        margin-left: 15px; /* Space from dropdowns */
-    }}
-    
     h1 {{ text-align: center; }}
-    
-    /* Hide Bokeh logo and any toolbar elements */
-    .bk-logo, .bk-toolbar, .bk-toolbar-button, .bk-button-bar {{ 
-        display: none !important; 
-    }}
-    
-    /* Hide any remaining Bokeh UI elements */
-    .bk-toolbar-right, .bk-toolbar-left, .bk-toolbar-above, .bk-toolbar-below {{
-        display: none !important;
-    }}
+    .bk-logo, .bk-toolbar, .bk-toolbar-button, .bk-button-bar {{ display: none !important; }}
+    .bk-toolbar-right, .bk-toolbar-left, .bk-toolbar-above, .bk-toolbar-below {{ display: none !important; }}
+    #travel-time-range {{ font-weight:bold; color:#2c3e50; margin-bottom:1vh; font-size: clamp(18px, 2vw, 30px); text-align:center; }}
+    #travel-time-specific {{ font-weight:bold; color:black; margin-bottom:1.2vh; font-size: clamp(18px, 2vw, 30px); text-align:center; }}
+    #travel-time-range span#min-time {{ color: green; }}
+    #travel-time-range span#max-time {{ color: red; }}
   </style>
 </head>
 <body>
-  <div class="controls">
-    Origin:
-    <select id="origin">{origin_options}</select>
-    Destination:
-    <select id="destination">{dest_options}</select>
-    <button id="main-submit" onclick="updateAll()">Submit</button>
+  <div class=\"controls\">\n    Origin:\n    <select id=\"origin\">{origin_options}</select>\n    Destination:\n    <select id=\"destination\">{dest_options}</select>\n    Coverage Level:\n    <select id=\"coverage\">\n      <option value=\"\">Any</option>\n      <option value=\"0.7\">0.7</option>\n      <option value=\"0.75\">0.75</option>\n      <option value=\"0.8\">0.8</option>\n      <option value=\"0.85\">0.85</option>\n      <option value=\"0.9\">0.9</option>\n      <option value=\"0.95\">0.95</option>\n      <option value=\"1.0\">1.0</option>\n    </select>\n    Uncertainty Level:\n    <select id=\"uncertainty\">\n      <option value=\"\">Any</option>\n      <option value=\"1.0\">1.0</option>\n      <option value=\"0.95\">0.95</option>\n      <option value=\"0.9\">0.9</option>\n      <option value=\"0.85\">0.85</option>\n      <option value=\"0.8\">0.8</option>\n      <option value=\"0.75\">0.75</option>\n      <option value=\"0.7\">0.7</option>\n    </select>
   </div>
   
   <!-- Top panel with map and enlarged display -->
-  <div class="top-panel">
-    <div id="google-map"></div>
-    <div id="enlarged-container">
-      {enlarged_divs_html}
-    </div>
-  </div>
+  <div class=\"top-panel\">\n    <div id=\"google-map\"></div>\n    <div id=\"enlarged-container\">\n      <div id=\"travel-time-range\">Possible Range: <span id=\"min-time\">--</span> to <span id=\"max-time\">--</span></div>\n      <div id=\"travel-time-specific\">Travel Time Prediction: <span id=\"predicted-time\">--</span></div>\n      {enlarged_divs_html}\n    </div>\n  </div>
   
   <!-- Bottom panel with full grid -->
-  <div id="heatmap-container">
-    {div['main_grid']}
+  <div id=\"heatmap-outer\">
+    <div id=\"heatmap-scale\">{div['main_grid']}</div>
   </div>
   
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbSYStWSMczRjNpmCR-kM_vYn2fGu8vk"></script>
+  <script src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbSYStWSMczRjNpmCR-kM_vYn2fGu8vk\"></script>
   <script>
     const locations = {locations_js};
+    const covVals = ["0.7","0.75","0.8","0.85","0.9","0.95","1.0"];
+    const uncVals = ["1.0","0.95","0.9","0.85","0.8","0.75","0.7"];
+    const NUM_ORIGINS = {len(origins)};
+    const NUM_DESTS = {len(destinations)};
     let map, originMarker, destMarker, line;
+    let scaleRaf = 0;
+    // Resize performance helpers
+    let lastCellW = -1, lastCellH = -1, lastHeaderH = -1;
+    let resizeRaf = 0;
     
     function initMap() {{
       map = new google.maps.Map(document.getElementById('google-map'), {{
@@ -397,9 +457,7 @@ html = f"""
       const destName = document.getElementById('destination').value;
       const origin = locations[originName];
       const destination = locations[destName];
-      console.log('[Map] updateMap called with', originName, destName, origin, destination);
       
-      // Clear existing markers and line
       if (originMarker) originMarker.setMap(null);
       if (destMarker) destMarker.setMap(null);
       if (line) line.setMap(null);
@@ -435,75 +493,172 @@ html = f"""
     function updateEnlargedDisplay() {{
       const originName = document.getElementById('origin').value;
       const destName = document.getElementById('destination').value;
-      
-      console.log('[Enlarged] Updating display for', originName, destName);
-      
-      // Hide all enlarged plots first
       const container = document.getElementById('enlarged-container');
-      const allEnlarged = container.querySelectorAll('[id^="enlarged-"]');
+      const allEnlarged = container.querySelectorAll('[id^=\"enlarged-\"]');
       allEnlarged.forEach(div => div.style.display = 'none');
-      
       if (!originName || !destName) {{
-        // Show default empty state
         const emptyDiv = document.getElementById('enlarged-enlarged');
         if (emptyDiv) emptyDiv.style.display = 'block';
       }} else {{
-        // Show specific enlarged plot
         const plotKey = `${{originName}}_${{destName}}`;
         const plotDiv = document.getElementById(`enlarged-${{plotKey}}`);
-        if (plotDiv) {{
-          plotDiv.style.display = 'block';
-        }} else {{
-          // Fallback to empty state
-          const emptyDiv = document.getElementById('enlarged-enlarged');
-          if (emptyDiv) emptyDiv.style.display = 'block';
-        }}
+        if (plotDiv) plotDiv.style.display = 'block';
       }}
     }}
-    
-    // Unified update function
+
+    function getSelectedEnlargedSource() {{
+      const bokehDocs = window.Bokeh ? window.Bokeh.documents : [];
+      if (!bokehDocs || bokehDocs.length === 0) return null;
+      const originName = document.getElementById('origin').value;
+      const destName = document.getElementById('destination').value;
+      if (!originName || !destName) return null;
+      const doc = bokehDocs[0];
+      return doc.get_model_by_name(`enlarged_src_${{originName}}_${{destName}}`);
+    }}
+
+    function accentuateEnlarged() {{
+      const src = getSelectedEnlargedSource();
+      if (!src) return;
+      const covSel = document.getElementById('coverage').value;
+      const uncSel = document.getElementById('uncertainty').value;
+      const xs = src.data['x'];
+      const ys = src.data['y'];
+      let newAlpha = xs.map((x, idx) => {{
+        const y = ys[idx];
+        const covIdx = covVals.indexOf(covSel);
+        const uncIdx = uncVals.indexOf(uncSel);
+        if (covIdx === -1 && uncIdx === -1) return 1;
+        if (covIdx !== -1 && uncIdx !== -1) return (x === covIdx && y === uncIdx) ? 1 : 0.15;
+        if (covIdx !== -1) return (x === covIdx) ? 1 : 0.15;
+        return (y === uncIdx) ? 1 : 0.15;
+      }});
+      src.data['alpha'] = newAlpha;
+      src.change.emit();
+    }}
+
+    function updateTravelTimeDisplay() {{
+      const src = getSelectedEnlargedSource();
+      const minEl = document.getElementById('min-time');
+      const maxEl = document.getElementById('max-time');
+      const predEl = document.getElementById('predicted-time');
+      if (!src) {{
+        minEl.textContent = '--';
+        maxEl.textContent = '--';
+        predEl.textContent = '--';
+        return;
+      }}
+      const vals = src.data['val'];
+      if (!vals || vals.length === 0) {{
+        minEl.textContent = '--';
+        maxEl.textContent = '--';
+        predEl.textContent = '--';
+        return;
+      }}
+      const minVal = Math.min(...vals);
+      const maxVal = Math.max(...vals);
+      minEl.textContent = Math.floor(minVal);
+      maxEl.textContent = Math.ceil(maxVal);
+
+      const covSel = document.getElementById('coverage').value;
+      const uncSel = document.getElementById('uncertainty').value;
+      const covIdx = covVals.indexOf(covSel);
+      const uncIdx = uncVals.indexOf(uncSel);
+      if (covIdx === -1 || uncIdx === -1) {{
+        predEl.textContent = '--';
+        return;
+      }}
+      const xs = src.data['x'];
+      const ys = src.data['y'];
+      const valsArr = src.data['val'];
+      for (let i=0; i<xs.length; ++i) {{
+        if (xs[i] === covIdx && ys[i] === uncIdx) {{
+          predEl.textContent = Math.ceil(valsArr[i]);
+          return;
+        }}
+      }}
+      predEl.textContent = '--';
+    }}
+
+    function resizeLayout() {{
+      const bokehDocs = window.Bokeh ? window.Bokeh.documents : [];
+      if (!bokehDocs || bokehDocs.length === 0) return;
+      const doc = bokehDocs[0];
+      const totalCols = 1 + NUM_DESTS;
+      const gridWidth = Math.max(600, Math.floor(window.innerWidth * 0.92));
+      const cellW = Math.max(60, Math.floor(gridWidth / totalCols));
+      const cellH = cellW;
+      const headerH = Math.max(40, Math.floor(cellH * 0.6));
+      // If nothing actually changed, skip heavy updates
+      if (cellW === lastCellW && cellH === lastCellH && headerH === lastHeaderH) return;
+      lastCellW = cellW; lastCellH = cellH; lastHeaderH = headerH;
+      // Compute target base size once at load, then scale container instead of touching every plot
+      // On first run, size the plots; afterward, only apply CSS scale
+      if (!doc._did_initial_layout) {{
+        {resize_headers_js}
+        {resize_origins_js}
+        {resize_cells_js}
+        const cb = doc.get_model_by_name('colorbar');
+        if (cb) {{ cb.height = headerH + (NUM_ORIGINS*cellH) + 20; cb.width = Math.max(60, Math.floor(window.innerWidth*0.06)); cb.change.emit(); }}
+        doc._did_initial_layout = true;
+      }}
+      // Scale the grid container to target width without redrawing plots
+      const scaleHost = document.getElementById('heatmap-scale');
+      if (scaleHost) {{
+        // Base width equals (1 + NUM_DESTS) * lastCellW; add small gutter
+        const baseW = (1 + NUM_DESTS) * lastCellW + 40;
+        const outerW = document.getElementById('heatmap-outer').clientWidth;
+        const scale = Math.max(0.5, Math.min(outerW / baseW, 2));
+        scaleHost.style.transform = 'scale(' + scale + ')';
+      }}
+      // enlarged plot sizes
+      const box = document.getElementById('enlarged-container');
+      const availW = box.clientWidth - 16; const availH = box.clientHeight - 110;
+      {resize_enlarged_js}
+    }}
+
     function updateAll() {{
-      console.log('[updateAll] Called');
       updateMap();
       updateEnlargedDisplay();
       accentuateGrid();
+      accentuateEnlarged();
+      updateTravelTimeDisplay();
+      resizeLayout();
     }}
     
     window.onload = function() {{
       initMap();
       updateEnlargedDisplay();
       accentuateGrid();
-      // Attach listeners
+      accentuateEnlarged();
+      updateTravelTimeDisplay();
+      resizeLayout();
       document.getElementById('origin').addEventListener('change', updateAll);
       document.getElementById('destination').addEventListener('change', updateAll);
-      document.getElementById('main-submit').addEventListener('click', updateAll);
+      document.getElementById('coverage').addEventListener('change', updateAll);
+      document.getElementById('uncertainty').addEventListener('change', updateAll);
+      window.addEventListener('resize', () => {{
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(resizeLayout);
+      }});
     }};
   </script>
   <script>
     // Bokeh grid accentuation logic
     function accentuateGrid() {{
       const bokehDocs = window.Bokeh ? window.Bokeh.documents : [];
-      if (!bokehDocs || bokehDocs.length === 0) {{
-        console.log('[Grid] No Bokeh docs found');
-        return;
-      }}
+      if (!bokehDocs || bokehDocs.length === 0) {{ return; }}
       const doc = bokehDocs[0];
       const origins = {origins};
       const destinations = {destinations};
       const origin = document.getElementById('origin').value;
       const dest = document.getElementById('destination').value;
-      console.log('[Grid] accentuateGrid called with', origin, dest);
-      
       for (let i=0; i<origins.length; ++i) {{
         for (let j=0; j<destinations.length; ++j) {{
           let src = doc.get_model_by_name(`src_${{origins[i]}}_${{destinations[j]}}`);
           if (!src) continue;
-          
-          // If either origin or dest is empty, show all at full opacity
-          let is_selected = origin && dest && (origins[i] === origin && destinations[j] === dest);
           let new_alpha = src.data['alpha'].map(_ => {{
-            if (!origin || !dest) return 1;  // Full opacity when nothing selected
-            return is_selected ? 1 : 0.1;    // Highlight only selected
+            if (!origin || !dest) return 1;
+            return (origins[i] === origin && destinations[j] === dest) ? 1 : 0.1;
           }});
           src.data['alpha'] = new_alpha;
           src.change.emit();
