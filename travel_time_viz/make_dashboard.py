@@ -392,7 +392,7 @@ html = f"""
         padding: 1vh 1vw;
         box-sizing: border-box;
     }}
-    #heatmap-outer {{ width: 96vw; margin: 0 auto; overflow: hidden; }}
+    #heatmap-outer {{ width: 96vw; margin: 0 auto; overflow-x: auto; overflow-y: auto; }}
     #heatmap-scale {{ display: inline-block; transform-origin: top left; }}
     .controls {{ 
         text-align: center; 
@@ -588,7 +588,21 @@ html = f"""
       const cellW = Math.max(60, Math.floor(gridWidth / totalCols));
       const cellH = cellW;
       const headerH = Math.max(40, Math.floor(cellH * 0.6));
-      // If nothing actually changed, skip heavy updates
+      // Always update CSS scale so the grid responds instantly to width changes
+      const scaleHost = document.getElementById('heatmap-scale');
+      if (scaleHost) {{
+        const baseCellW = (lastCellW > 0) ? lastCellW : cellW;
+        const baseCellH = (lastCellH > 0) ? lastCellH : cellH;
+        const baseHeaderH = (lastHeaderH > 0) ? lastHeaderH : headerH;
+        const baseW = (1 + NUM_DESTS) * baseCellW + 130; // include colorbar (~120) + gutter
+        const outerEl = document.getElementById('heatmap-outer');
+        const outerW = outerEl.clientWidth;
+        // width-driven scaling; allow vertical scroll if needed to avoid over-shrinking
+        const scaleW = outerW / baseW;
+        const scale = Math.max(0.8, Math.min(scaleW, 1.0)); // never expand past container
+        scaleHost.style.transform = 'scale(' + scale + ')';
+      }}
+      // If nothing actually changed for plot metrics, skip heavy updates
       if (cellW === lastCellW && cellH === lastCellH && headerH === lastHeaderH) return;
       lastCellW = cellW; lastCellH = cellH; lastHeaderH = headerH;
       // Compute target base size once at load, then scale container instead of touching every plot
@@ -600,15 +614,6 @@ html = f"""
         const cb = doc.get_model_by_name('colorbar');
         if (cb) {{ cb.height = headerH + (NUM_ORIGINS*cellH) + 20; cb.width = Math.max(60, Math.floor(window.innerWidth*0.06)); cb.change.emit(); }}
         doc._did_initial_layout = true;
-      }}
-      // Scale the grid container to target width without redrawing plots
-      const scaleHost = document.getElementById('heatmap-scale');
-      if (scaleHost) {{
-        // Base width equals (1 + NUM_DESTS) * lastCellW; add small gutter
-        const baseW = (1 + NUM_DESTS) * lastCellW + 40;
-        const outerW = document.getElementById('heatmap-outer').clientWidth;
-        const scale = Math.max(0.5, Math.min(outerW / baseW, 2));
-        scaleHost.style.transform = 'scale(' + scale + ')';
       }}
       // enlarged plot sizes
       const box = document.getElementById('enlarged-container');
