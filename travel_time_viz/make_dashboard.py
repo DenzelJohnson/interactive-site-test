@@ -367,7 +367,7 @@ html = f"""
   {script}
   <link href=\"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap\" rel=\"stylesheet\">
   <style>
-    :root {{ --map-w: 45vw; --map-h: 50vh; --enlarged-w: 40vw; --enlarged-h: 50vh; }}
+    :root {{ --map-w: 45vw; --enlarged-w: 40vw; }}
     body {{ font-family:'Open Sans', Arial, sans-serif; margin:20px; }}
     .bk-root, .bk-tooltip, select, button, input, label {{ font-family:'Open Sans', Arial, sans-serif; }}
     .top-panel {{
@@ -379,14 +379,13 @@ html = f"""
         flex-wrap: wrap;
     }}
     #google-map {{
-        width: var(--map-w);
-        height: var(--map-h);
+        width: clamp(320px, var(--map-w), 900px);
+        aspect-ratio: 16 / 10;
         border: 1px solid #ccc;
         flex-shrink: 0;
     }}
     #enlarged-container {{
-        width: var(--enlarged-w);
-        height: var(--enlarged-h);
+        width: clamp(320px, var(--enlarged-w), 900px);
         border: 1px solid #ccc;
         flex-shrink: 0;
         padding: 1vh 1vw;
@@ -619,6 +618,7 @@ html = f"""
       const box = document.getElementById('enlarged-container');
       const availW = box.clientWidth - 16; const availH = box.clientHeight - 110;
       {resize_enlarged_js}
+      if (window._postHeight) {{ window._postHeight(); }}
     }}
 
     function updateAll() {{
@@ -645,7 +645,43 @@ html = f"""
         if (resizeRaf) cancelAnimationFrame(resizeRaf);
         resizeRaf = requestAnimationFrame(resizeLayout);
       }});
+      // Pre-warm initial layout so the first interaction is instant
+      function warmup() {{
+        resizeLayout();
+        requestAnimationFrame(resizeLayout);
+        setTimeout(resizeLayout, 150);
+        setTimeout(resizeLayout, 600);
+        setTimeout(resizeLayout, 1200);
+      }}
+      if (document.fonts && document.fonts.ready) {{
+        document.fonts.ready.then(warmup);
+      }} else {{
+        setTimeout(warmup, 0);
+      }}
     }};
+  </script>
+  <script>
+    (function(){{
+      function postHeight(){{
+        try {{
+          const h = Math.max(
+            document.documentElement.scrollHeight || 0,
+            document.body.scrollHeight || 0
+          );
+          if (window.parent) {{
+            window.parent.postMessage({{ height: h }}, '*');
+          }}
+        }} catch(err) {{
+          // ignore
+        }}
+      }}
+      window._postHeight = postHeight;
+      window.addEventListener('load', function(){{
+        postHeight();
+        setTimeout(postHeight, 300);
+      }});
+      window.addEventListener('resize', postHeight);
+    }})();
   </script>
   <script>
     // Bokeh grid accentuation logic
